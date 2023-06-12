@@ -1,6 +1,6 @@
 ﻿using Bogus;
 
-namespace GraphQL.Demo.API.Schema;
+namespace GraphQL.Demo.API.Schema.Queries;
 
 public class Query
 {
