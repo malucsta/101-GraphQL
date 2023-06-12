@@ -1,11 +1,18 @@
-﻿using GraphQL.Demo.API.Schema.Queries;
+﻿using GraphQL.Demo.API.Schema.Subscriptions;
+using HotChocolate.Subscriptions;
 
 namespace GraphQL.Demo.API.Schema.Mutations;
 
 public class Mutation
 {
-    private readonly List<CourseResult> _courses = new List<CourseResult>();
-    public CourseResult CreateCourse(CourseInput input)
+    private readonly List<CourseResult> _courses;
+
+    public Mutation()
+    {
+        _courses = new List<CourseResult>();
+    }
+    
+    public async Task<CourseResult> CreateCourse(CourseInput input, [Service] ITopicEventSender topicEventSender)
     {
         var course = new CourseResult
         {
@@ -16,11 +23,12 @@ public class Mutation
         };
 
         _courses.Add(course);
+        await topicEventSender.SendAsync(Consts.Topics.CourseCreated, course);
 
         return course;
     }
 
-    public CourseResult UpdateCourse(Guid id, CourseInput input)
+    public async Task<CourseResult> UpdateCourse(Guid id, CourseInput input, [Service] ITopicEventSender topicEventSender)
     {
         var course = _courses.FirstOrDefault(c => c.Id == id);
 
@@ -32,6 +40,8 @@ public class Mutation
         course.Subject = input.Subject; 
         course.InstructorId = input.InstructorId;
         _courses.Add(course);
+
+        await topicEventSender.SendAsync(Consts.Topics.CourseUpdatedById(course.Id.ToString()), course);
 
         return course;
     }
